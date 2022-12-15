@@ -21,7 +21,10 @@ class CalcFrame extends JFrame implements ActionListener{
 	double operand = 0; //文字列から数字に変換して格納する変数
 	ArrayList<String> box = new ArrayList<>(); //数字等を文字列として先入れ後出しする箱
 	ArrayList<String> subBox = new ArrayList<>(); //補助用の箱。演算子を一時保管する
+	ArrayList<ArrayList> lists = new ArrayList<>();
 
+	
+	
 	CalcFrame(){
 		setTitle("電卓");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -182,6 +185,10 @@ class CalcFrame extends JFrame implements ActionListener{
 					subBox.clear();
 					button[10].setEnabled(true);
 					label.setText("");
+				}else if(i == 18) {
+					
+				}else if(i == 19) {
+					
 				}
 			}	
 		}
