@@ -145,20 +145,7 @@ class CalcFrame extends JFrame implements ActionListener{
 						if(subBox.size() > 1) { //subBoxに二つ以上の演算子が格納されている場合
 							//+または-を押した場合かつ直前の演算子が×または÷の場合
 							if((i ==12 || i ==13) && (subBox.get(subBox.size()-2) == "×" || subBox.get(subBox.size()-2) == "÷")) {
-								box.add(subBox.get(subBox.size()-2));
-								subBox.remove(subBox.size()-2);
-								d1 = Double.parseDouble(box.get(box.size()-3));
-								d2 = Double.parseDouble(box.get(box.size()-2));
-								String s = box.get(box.size()-1);
-								box.remove(box.size()-1);
-								box.remove(box.size()-1);
-								box.remove(box.size()-1);
-								System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
-								operand = calc(d1, d2, s);
-								System.out.println("operandは" + operand);
-								str = String.valueOf(operand);
-								box.add(str);
-								str = "";
+								process();
 								//subBoxに+または-の演算子が二つ並んだ場合
 								if(subBox.size() > 1) {
 									if((subBox.get(subBox.size()-2) == "+" || subBox.get(subBox.size()-2) == "-") &&
