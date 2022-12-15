@@ -23,7 +23,7 @@ class CalcFrame extends JFrame implements ActionListener{
 	ArrayList<String> subBox = new ArrayList<>(); //補助用の箱。演算子を一時保管する
 
 	CalcFrame(){
-		setTitle("メモ");
+		setTitle("電卓");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		//各種ボタンの作成
 		for(int i = 0; i <= 9; i++) {
@@ -163,80 +163,38 @@ class CalcFrame extends JFrame implements ActionListener{
 								if(subBox.size() > 1) {
 									if((subBox.get(subBox.size()-2) == "+" || subBox.get(subBox.size()-2) == "-") &&
 										(subBox.get(subBox.size()-1) == "+" || subBox.get(subBox.size()-1) == "-")) {
-										box.add(subBox.get(subBox.size()-2));
-										subBox.remove(subBox.size()-2);
-										d1 = Double.parseDouble(box.get(box.size()-3));
-										d2 = Double.parseDouble(box.get(box.size()-2));
-										s = box.get(box.size()-1);
-										box.remove(box.size()-1);
-										box.remove(box.size()-1);
-										box.remove(box.size()-1);
-										System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
-										operand = calc(d1, d2, s);
-										System.out.println("operandは" + operand);
-										str = String.valueOf(operand);
-										box.add(str);
-										str = "";
+										process();
 									}
 								}
 							}
 							//+または-を押した場合かつ直前の演算子が+または-の場合
 							else if((i ==12 || i ==13) && (subBox.get(subBox.size()-2) == "+" || subBox.get(subBox.size()-2) == "-")) {
-								box.add(subBox.get(subBox.size()-2));
-								subBox.remove(subBox.size()-2);
-								d1 = Double.parseDouble(box.get(box.size()-3));
-								d2 = Double.parseDouble(box.get(box.size()-2));
-								String s = box.get(box.size()-1);
-								box.remove(box.size()-1);
-								box.remove(box.size()-1);
-								box.remove(box.size()-1);
-								System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
-								operand = calc(d1, d2, s);
-								System.out.println("operandは" + operand);
-								str = String.valueOf(operand);
-								box.add(str);
-								str = "";
+								process();
 							}
 							//×または÷を押した場合かつ直前の演算子が×または÷の場合
 							else if((i ==14 || i ==15) && (subBox.get(subBox.size()-2) == "×" || subBox.get(subBox.size()-2) == "÷")) {
-								box.add(subBox.get(subBox.size()-2));
-								subBox.remove(subBox.size()-2);
-								d1 = Double.parseDouble(box.get(box.size()-3));
-								d2 = Double.parseDouble(box.get(box.size()-2));
-								s = box.get(box.size()-1);
-								box.remove(box.size()-1);
-								box.remove(box.size()-1);
-								box.remove(box.size()-1);
-								System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
-								operand = calc(d1, d2, s);
-								System.out.println("operandは" + operand);
-								str = String.valueOf(operand);
-								box.add(str);
-								str = "";
+								process();
 								//subBoxに+または-の演算子が二つ並んだ場合
 								if(subBox.size() > 1) {
 									if((subBox.get(subBox.size()-2) == "+" || subBox.get(subBox.size()-2) == "-") &&
 										(subBox.get(subBox.size()-1) == "+" || subBox.get(subBox.size()-1) == "-")) {
-										box.add(subBox.get(subBox.size()-2));
-										subBox.remove(subBox.size()-2);
-										d1 = Double.parseDouble(box.get(box.size()-3));
-										d2 = Double.parseDouble(box.get(box.size()-2));
-										s = box.get(box.size()-1);
-										box.remove(box.size()-1);
-										box.remove(box.size()-1);
-										box.remove(box.size()-1);
-										System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
-										operand = calc(d1, d2, s);
-										System.out.println("operandは" + operand);
-										str = String.valueOf(operand);
-										box.add(str);
-										str = "";
+										process();
 									}
 								}
 							}
 						}
 					}
 					
+				}else if(i == 16) {
+					str = "";
+					s = ""; 
+					d1 = 0; 
+					d2 = 0; 
+					operand = 0;
+					box.clear();
+					subBox.clear();
+					button[10].setEnabled(true);
+					label.setText("");
 				}
 			}	
 		}
@@ -249,7 +207,25 @@ class CalcFrame extends JFrame implements ActionListener{
 			for(int j = 0; j < subBox.size(); j++) {
 				System.out.println("subBoxの" + j + "番目は" + subBox.get(j));
 			}
-		}
+		}		
+	}
+	
+	
+	public void process() {
+		box.add(subBox.get(subBox.size()-2));
+		subBox.remove(subBox.size()-2);
+		d1 = Double.parseDouble(box.get(box.size()-3));
+		d2 = Double.parseDouble(box.get(box.size()-2));
+		s = box.get(box.size()-1);
+		box.remove(box.size()-1);
+		box.remove(box.size()-1);
+		box.remove(box.size()-1);
+		System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
+		operand = calc(d1, d2, s);
+		System.out.println("operandは" + operand);
+		str = String.valueOf(operand);
+		box.add(str);
+		str = "";
 	}
 	
 	public double calc(double d1, double d2, String s) {
