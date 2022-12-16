@@ -21,10 +21,7 @@ class CalcFrame extends JFrame implements ActionListener{
 	double operand = 0; //文字列から数字に変換して格納する変数
 	ArrayList<String> box = new ArrayList<>(); //数字等を文字列として先入れ後出しする箱
 	ArrayList<String> subBox = new ArrayList<>(); //補助用の箱。演算子を一時保管する
-	ArrayList<ArrayList> lists = new ArrayList<>();
 
-	
-	
 	CalcFrame(){
 		setTitle("電卓");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -185,10 +182,45 @@ class CalcFrame extends JFrame implements ActionListener{
 					subBox.clear();
 					button[10].setEnabled(true);
 					label.setText("");
+				// subBoxに"("を追加
 				}else if(i == 18) {
-					
+					subBox.add(button[i].getText());
+				// ")"は、カッコ内の数式における"="と同じとみなせるので、"="の時とほぼ同じ処理をする
 				}else if(i == 19) {
-					
+					if(str != "") {//strが空でない必要がある
+						box.add(str);
+						box.add(subBox.get(subBox.size()-1));
+						subBox.remove(subBox.size()-1);
+						d1 = Double.parseDouble(box.get(box.size()-3));
+						d2 = Double.parseDouble(box.get(box.size()-2));
+						s = box.get(box.size()-1);
+						box.remove(box.size()-1);
+						box.remove(box.size()-1);
+						box.remove(box.size()-1);
+						System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
+						operand = calc(d1, d2, s);
+						System.out.println("operandは" + operand);
+						str = String.valueOf(operand);
+						if(subBox.get(subBox.size()-1) != "(") {
+							box.add(str);
+							box.add(subBox.get(subBox.size()-1));
+							subBox.remove(subBox.size()-1);
+							d1 = Double.parseDouble(box.get(box.size()-3));
+							d2 = Double.parseDouble(box.get(box.size()-2));
+							s = box.get(box.size()-1);
+							box.remove(box.size()-1);
+							box.remove(box.size()-1);
+							box.remove(box.size()-1);
+							System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
+							operand = calc(d1, d2, s);
+							System.out.println("operandは" + operand);
+							str = String.valueOf(operand);
+						} 
+						//subBoxの"("を消去
+						subBox.remove(subBox.size()-1); 
+						//小数点ボタン有効化
+						button[10].setEnabled(true);
+					}
 				}
 			}	
 		}
