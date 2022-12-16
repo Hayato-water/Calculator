@@ -171,7 +171,7 @@ class CalcFrame extends JFrame implements ActionListener{
 							}
 						}
 					}
-					
+				// リセットする
 				}else if(i == 16) {
 					str = "";
 					s = ""; 
@@ -182,6 +182,12 @@ class CalcFrame extends JFrame implements ActionListener{
 					subBox.clear();
 					button[10].setEnabled(true);
 					label.setText("");
+				// strを100分の1にする
+				}else if(i == 17) {
+					if(str != "") {
+						operand = Double.parseDouble(str) * 0.01;
+						str = String.valueOf(operand);
+					}
 				// subBoxに"("を追加
 				}else if(i == 18) {
 					subBox.add(button[i].getText());
