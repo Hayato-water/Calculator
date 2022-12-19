@@ -1,4 +1,5 @@
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -63,11 +64,13 @@ class CalcFrame extends JFrame implements ActionListener{
 		panel.add(button[12]);
 		//コンテナをボックスレイアウトとし、ラベルとパネルをコンテナに乗せる。
 		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
-		label.setPreferredSize(new Dimension(350, 100));
+		label.setPreferredSize(new Dimension(Short.MAX_VALUE, 100));
+		label.setFont(new Font(Font.DIALOG_INPUT, Font.PLAIN, 20));
 		getContentPane().add(label);
 		getContentPane().add(panel);
 		//アクションリスナーを有効にする
 		for(int i = 0; i <= 19; i++) {
+			button[i].setFont(new Font(Font.DIALOG_INPUT, Font.PLAIN, 20));
 			button[i].addActionListener(this);
 		}
 		//フレームを表示する
@@ -111,6 +114,7 @@ class CalcFrame extends JFrame implements ActionListener{
 						box.remove(box.size()-1);
 						System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
 						operand = calc(d1, d2, s);
+						//subBoxに演算子がまだ残っている場合、もう一度計算する
 						if(subBox.size() > 0) {
 							System.out.println("operandは" + operand);
 							str = String.valueOf(operand);
@@ -206,9 +210,10 @@ class CalcFrame extends JFrame implements ActionListener{
 						System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
 						operand = calc(d1, d2, s);
 						System.out.println("operandは" + operand);
-						str = String.valueOf(operand);
+						str = String.valueOf(operand); //カッコ内を計算して一つの数字として持つ
+						//subBoxの先頭が"("出なければ、カッコ内の計算が終わっていないので、もう一度計算する
 						if(subBox.get(subBox.size()-1) != "(") {
-							box.add(str);
+							box.add(str); 
 							box.add(subBox.get(subBox.size()-1));
 							subBox.remove(subBox.size()-1);
 							d1 = Double.parseDouble(box.get(box.size()-3));
@@ -220,7 +225,7 @@ class CalcFrame extends JFrame implements ActionListener{
 							System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
 							operand = calc(d1, d2, s);
 							System.out.println("operandは" + operand);
-							str = String.valueOf(operand);
+							str = String.valueOf(operand); //カッコ内を計算して一つの数字として持つ
 						} 
 						//subBoxの"("を消去
 						subBox.remove(subBox.size()-1); 
@@ -284,7 +289,7 @@ class CalcFrame extends JFrame implements ActionListener{
 	}
 	
 }
-public class calcurator {
+public class Calcurator {
 	
 	public static void main(String[] args) {
 		new CalcFrame();
