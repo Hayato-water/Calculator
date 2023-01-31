@@ -338,10 +338,21 @@ class CalcFrame extends JFrame implements ActionListener{
 					for(int j = 0; j <= 19; j++) {
 						button[j].setEnabled(false);
 					}
-					//演算子、「=」「)」のみ有効化
-					//なお、「)」を押せるかどうかは数字を押した際にコントロール済み
+					//演算子、「=」のみ有効化
 					for(int j = 11; j <= 15; j++) {
 						button[j].setEnabled(true);
+					}
+					//以下の条件の場合は「)」を有効化
+					//「(」が押されている
+					if(flag > 0) {
+						//strが空でない
+						if(str != "") {
+							//subBoxの一番上に演算子が格納されている
+							if(subBox.get(subBox.size()-1) == "+" || subBox.get(subBox.size()-1) == "-" || 
+									subBox.get(subBox.size()-1) == "×" || subBox.get(subBox.size()-1) == "÷" ) {
+								button[19].setEnabled(true);
+							}
+						}
 					}
 					//以下の条件の際は「=」を無効化
 					//「)」で閉じられていない
