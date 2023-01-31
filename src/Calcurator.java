@@ -10,6 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 class CalcFrame extends JFrame implements ActionListener{
 	JLabel label = new JLabel(""); //計算結果を表示する
@@ -67,7 +68,10 @@ class CalcFrame extends JFrame implements ActionListener{
 		//コンテナをボックスレイアウトとし、ラベルとパネルをコンテナに乗せる。
 		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 		label.setPreferredSize(new Dimension(Short.MAX_VALUE, 100));
-		label.setFont(new Font(Font.DIALOG_INPUT, Font.PLAIN, 20));
+		label.setHorizontalAlignment(SwingConstants.LEFT);
+		label.setHorizontalAlignment(JLabel.LEFT);
+		System.out.println(label.getHorizontalAlignment());
+		label.setFont(new Font(Font.DIALOG_INPUT, Font.PLAIN, 16));
 		getContentPane().add(label);
 		getContentPane().add(panel);
 		//アクションリスナーを有効にする
@@ -111,26 +115,43 @@ class CalcFrame extends JFrame implements ActionListener{
 				else if(i == 11) {
 					//strが空でない必要がある
 					if(str != "") {
-						//boxに文字列を格納
-						box.add(str);
-						//計算処理
-						//引数「1」はsubBoxの上から1番目の演算子を使うことを指す
-						process(1);
-						//subBoxに演算子がまだ残っている場合、もう一度計算する
+						//subBoxが空でない場合
 						if(subBox.size() > 0) {
+							//boxに文字列を格納
+							box.add(str);
 							//計算処理
+							//引数「1」はsubBoxの上から1番目の演算子を使うことを指す
 							process(1);
+							//subBoxに演算子がまだ残っている場合、もう一度計算する
+							if(subBox.size() > 0) {
+								//計算処理
+								process(1);
+							}
+							//operandが整数ならば、double型からint型へキャストし、整数部のみで答えを表示する
+							//小数点以下を切り捨てたものが元の数値と同じであれば整数と判断できる
+							if(Math.floor(operand) == operand) {
+								//答えを表示
+								label.setText(label.getText() + (int)operand);
+								System.out.println("答えは" + (int)operand);
+							}else {
+								//答えを表示
+								label.setText(label.getText() + operand);
+								System.out.println("答えは" + operand);
+							}
 						}
-						//operandが整数ならば、double型からint型へキャストし、整数部のみで答えを表示する
-						//小数点以下を切り捨てたものが元の数値と同じであれば整数と判断できる
-						if(Math.floor(operand) == operand) {
-							//答えを表示
-							label.setText(label.getText() + (int)operand);
-							System.out.println("答えは" + (int)operand);
-						}else {
-							//答えを表示
-							label.setText(label.getText() + operand);
-							System.out.println("答えは" + operand);
+						//subBoxが空（演算子がない）の場合。operandに格納されている数値がそのまま答えになる
+						else {
+							//operandが整数ならば、double型からint型へキャストし、整数部のみで答えを表示する
+							//小数点以下を切り捨てたものが元の数値と同じであれば整数と判断できる
+							if(Math.floor(operand) == operand) {
+								//答えを表示
+								label.setText(label.getText() + (int)operand);
+								System.out.println("答えは" + (int)operand);
+							}else {
+								//答えを表示
+								label.setText(label.getText() + operand);
+								System.out.println("答えは" + operand);
+							}
 						}
 						//変数リセット
 						str = "";
@@ -382,7 +403,7 @@ class CalcFrame extends JFrame implements ActionListener{
 			for(int j = 0; j < subBox.size(); j++) {
 				System.out.println("subBoxの" + j + "番目は" + subBox.get(j));
 			}
-		}		
+		}
 	}
 	
 	//計算処理をするメソッド
