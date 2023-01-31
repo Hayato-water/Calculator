@@ -10,7 +10,6 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 
 class CalcFrame extends JFrame implements ActionListener{
 	JLabel label = new JLabel(""); //計算結果を表示する
@@ -68,9 +67,6 @@ class CalcFrame extends JFrame implements ActionListener{
 		//コンテナをボックスレイアウトとし、ラベルとパネルをコンテナに乗せる。
 		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 		label.setPreferredSize(new Dimension(Short.MAX_VALUE, 100));
-		label.setHorizontalAlignment(SwingConstants.LEFT);
-		label.setHorizontalAlignment(JLabel.LEFT);
-		System.out.println(label.getHorizontalAlignment());
 		label.setFont(new Font(Font.DIALOG_INPUT, Font.PLAIN, 16));
 		getContentPane().add(label);
 		getContentPane().add(panel);
