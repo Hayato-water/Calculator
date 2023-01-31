@@ -21,7 +21,8 @@ class CalcFrame extends JFrame implements ActionListener{
 	double d2; //計算する際、数値を格納する
 	double operand = 0; //文字列から数字に変換して格納する変数
 	ArrayList<String> box = new ArrayList<>(); //数字等を文字列として先入れ後出しする箱
-	ArrayList<String> subBox = new ArrayList<>(); //補助用の箱。演算子を一時保管する
+	ArrayList<String> subBox = new ArrayList<>(); //補助用の箱。演算子を一時保管する。先入れ後出し
+	//なお、便宜上、箱の後ろからn番目に格納された要素を、箱の上からn番目にあると表現している
 
 	CalcFrame(){
 		setTitle("電卓");
@@ -41,7 +42,7 @@ class CalcFrame extends JFrame implements ActionListener{
 		button[18] = new JButton("(");
 		button[19] = new JButton(")");
 		//パネルを作成し、ボタンをパネルに乗せる
-		panel.setLayout(new GridLayout(5,4)); //ボタンの順番、横に4回のち下の列へ
+		panel.setLayout(new GridLayout(5,4));
 		panel.add(button[16]);
 		panel.add(button[18]);
 		panel.add(button[19]);
@@ -79,14 +80,15 @@ class CalcFrame extends JFrame implements ActionListener{
 	}
 
 	public void actionPerformed(ActionEvent e) {
+		//どのボタンが押されたか順番に確認する
 		for(int i = 0; i <= 19; i++) {
 			if(e.getSource() == button[i]){
-				//押されたボタンの数字等をラベルに表示する
+				//「AC」以外のボタンを押したのであればラベルに表示する
 				if(i != 16) { 
 					label.setText(label.getText() + button[i].getText());
 					System.out.println("押されたキーは" + button[i].getText());
 				}
-				//数字または小数点が押され続ける限り、それを文字列として格納する
+				//数字または小数点が押され続ける限り、それをひと続きの文字列（ひとつの数字）として格納する
 				if(0 <= i && i <= 10) { 
 					//文字列が小数点のみなら先頭に0を付ける
 					if(str == ".") {
@@ -99,26 +101,35 @@ class CalcFrame extends JFrame implements ActionListener{
 					}
 					System.out.println("strは" + str);
 				}
-				//イコールを押したら答えを表示する。すべての変数をリセットする
+				//「=」を押した場合。答えを表示する。すべての変数をリセットする
 				else if(i == 11) {
 					//計算する
 					if(str != "") {//strが空でない必要がある
+						//boxに文字列を格納
 						box.add(str);
+						//subBoxから演算子を取り出し、boxに追加
 						box.add(subBox.get(subBox.size()-1));
+						//取り出したものをboxから削除する
 						subBox.remove(subBox.size()-1);
+						//boxの上から2番目と3番目の要素をダブル型の数値として取り出す
 						d1 = Double.parseDouble(box.get(box.size()-3));
 						d2 = Double.parseDouble(box.get(box.size()-2));
+						//boxの上から1番目の要素(演算子)を取り出す
 						s = box.get(box.size()-1);
+						//取り出したものをboxから削除する
 						box.remove(box.size()-1);
 						box.remove(box.size()-1);
 						box.remove(box.size()-1);
 						System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
+						//取り出した要素を使用して計算する
 						operand = calc(d1, d2, s);
 						//subBoxに演算子がまだ残っている場合、もう一度計算する
 						if(subBox.size() > 0) {
 							System.out.println("operandは" + operand);
+							//直前に計算した数値をboxに格納する
 							str = String.valueOf(operand);
 							box.add(str);
+							//上記と同様に要素を取り出して計算する
 							box.add(subBox.get(subBox.size()-1));
 							d1 = Double.parseDouble(box.get(box.size()-3));
 							d2 = Double.parseDouble(box.get(box.size()-2));
@@ -137,46 +148,57 @@ class CalcFrame extends JFrame implements ActionListener{
 						button[10].setEnabled(true);
 					}
 				}
-				//演算子が押されたら、文字列をboxへ格納し、文字列を初期化。演算子はsubBoxへ格納
-				//subBoxへ格納された演算子が、直前にsubBoxへ格納された演算子より優先順位が低ければ、直前の演算子をboxへ格納
-				//box内に演算子が格納されたとき、文字列を最後から3つ取り出して計算し、boxへ戻す
+				//演算子が押された場合。文字列をboxへ格納し、文字列を初期化。演算子はsubBoxへ格納
+				//今subBoxへ格納した演算子と、ひとつ前にsubBoxへ格納した演算子の組み合わせにより場合分けし、計算処理↓を行う
+				//ひとつ前の演算子をboxへ格納し、boxから要素を上から3つ取り出して計算し、boxへ戻す（processメソッド）
 				else if(12 <= i && i <= 15) {
 					if(str != "") {//strが空でない必要がある
+						//文字列をboxに格納
 						box.add(str);
-						str = ""; //文字列初期化
-						button[10].setEnabled(true); //小数点ボタン有効化
+						//文字列初期化
+						str = ""; 
+						//小数点ボタン有効化
+						button[10].setEnabled(true);
+						//押された演算子をsubBoxへ格納
 						subBox.add(button[i].getText());
-						if(subBox.size() > 1) { //subBoxに二つ以上の演算子が格納されている場合
-							//+または-を押した場合かつ直前の演算子が×または÷の場合
+						//subBoxに2つ以上の演算子が格納されている場合
+						if(subBox.size() > 1) { 
+							//+または-を押した場合かつひとつ前の演算子が×または÷の場合
 							if((i ==12 || i ==13) && (subBox.get(subBox.size()-2) == "×" || subBox.get(subBox.size()-2) == "÷")) {
-								process();
-								//subBoxに+または-の演算子が二つ並んだ場合
+								//+,-は×,÷より優先順位が低いため、processメソッドで計算処理を行う
+								//引数「2」はsubBoxの上から2番目の演算子を使うことを指す
+								process(2);
+								//subBoxから×または÷の演算子が取り出されたことにより、subBoxに+または-の演算子が2つ並んだ場合
 								if(subBox.size() > 1) {
 									if((subBox.get(subBox.size()-2) == "+" || subBox.get(subBox.size()-2) == "-") &&
 										(subBox.get(subBox.size()-1) == "+" || subBox.get(subBox.size()-1) == "-")) {
-										process();
+										//計算処理
+										process(2);
 									}
 								}
 							}
-							//+または-を押した場合かつ直前の演算子が+または-の場合
+							//+または-を押した場合かつひとつ前の演算子が+または-の場合
 							else if((i ==12 || i ==13) && (subBox.get(subBox.size()-2) == "+" || subBox.get(subBox.size()-2) == "-")) {
-								process();
+								//計算処理
+								process(2);
 							}
 							//×または÷を押した場合かつ直前の演算子が×または÷の場合
 							else if((i ==14 || i ==15) && (subBox.get(subBox.size()-2) == "×" || subBox.get(subBox.size()-2) == "÷")) {
-								process();
-								//subBoxに+または-の演算子が二つ並んだ場合
+								process(2);
+								//subBoxに+または-の演算子が2つ並んだ場合
 								if(subBox.size() > 1) {
 									if((subBox.get(subBox.size()-2) == "+" || subBox.get(subBox.size()-2) == "-") &&
 										(subBox.get(subBox.size()-1) == "+" || subBox.get(subBox.size()-1) == "-")) {
-										process();
+										//計算処理
+										process(2);
 									}
 								}
 							}
 						}
 					}
-				// リセットする
-				}else if(i == 16) {
+				}
+				// 「AC」が押された場合。変数をリセットする
+				else if(i == 16) {
 					str = "";
 					s = ""; 
 					d1 = 0; 
@@ -186,18 +208,22 @@ class CalcFrame extends JFrame implements ActionListener{
 					subBox.clear();
 					button[10].setEnabled(true);
 					label.setText("");
-				// strを100分の1にする
-				}else if(i == 17) {
+				
+				}
+				//「%」が押された場合。strを100分の1にする
+				else if(i == 17) {
 					if(str != "") {
 						operand = Double.parseDouble(str) * 0.01;
 						str = String.valueOf(operand);
 					}
-				// subBoxに"("を追加
+				//「(」が押された場合。 subBoxに「(」を追加
 				}else if(i == 18) {
 					subBox.add(button[i].getText());
-				// ")"は、カッコ内の数式における"="と同じとみなせるので、"="の時とほぼ同じ処理をする
+				//「)」が押された場合。
+				//「)」は、カッコ内の数式における「=」と同じとみなせるので、「=」の時とほぼ同じ処理をする
 				}else if(i == 19) {
-					if(str != "") {//strが空でない必要がある
+					//strが空でない必要がある
+					if(str != "") {
 						box.add(str);
 						box.add(subBox.get(subBox.size()-1));
 						subBox.remove(subBox.size()-1);
@@ -210,8 +236,9 @@ class CalcFrame extends JFrame implements ActionListener{
 						System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
 						operand = calc(d1, d2, s);
 						System.out.println("operandは" + operand);
-						str = String.valueOf(operand); //カッコ内を計算して一つの数字として持つ
-						//subBoxの先頭が"("出なければ、カッコ内の計算が終わっていないので、もう一度計算する
+						//計算したカッコ内の数値をstrに格納
+						str = String.valueOf(operand);
+						//subBoxの先頭が「(」出なければ、カッコ内の計算が終わっていないので、もう一度計算する
 						if(subBox.get(subBox.size()-1) != "(") {
 							box.add(str); 
 							box.add(subBox.get(subBox.size()-1));
@@ -225,9 +252,10 @@ class CalcFrame extends JFrame implements ActionListener{
 							System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
 							operand = calc(d1, d2, s);
 							System.out.println("operandは" + operand);
-							str = String.valueOf(operand); //カッコ内を計算して一つの数字として持つ
+							//計算したカッコ内の数値をstrに格納
+							str = String.valueOf(operand);
 						} 
-						//subBoxの"("を消去
+						//subBoxの「(」を消去
 						subBox.remove(subBox.size()-1); 
 						//小数点ボタン有効化
 						button[10].setEnabled(true);
@@ -235,6 +263,7 @@ class CalcFrame extends JFrame implements ActionListener{
 				}
 			}	
 		}
+		//box、subBoxに格納されている要素を確認する
 		if(box.size() > 0) {
 			for(int j = 0; j < box.size(); j++) {
 				System.out.println("boxの" + j + "番目は" + box.get(j));
@@ -247,10 +276,13 @@ class CalcFrame extends JFrame implements ActionListener{
 		}		
 	}
 	
-	
-	public void process() {
-		box.add(subBox.get(subBox.size()-2));
-		subBox.remove(subBox.size()-2);
+	//計算処理をするメソッド
+	//引数xは、subBoxの上から何番目の演算子を使用するかを指定する
+	public void process(int x) {
+		//subBoxの上から2番目の演算子を取り出す
+		box.add(subBox.get(subBox.size()-x));
+		subBox.remove(subBox.size()-x);
+		//boxの上から3つの要素を取り出す
 		d1 = Double.parseDouble(box.get(box.size()-3));
 		d2 = Double.parseDouble(box.get(box.size()-2));
 		s = box.get(box.size()-1);
@@ -258,6 +290,7 @@ class CalcFrame extends JFrame implements ActionListener{
 		box.remove(box.size()-1);
 		box.remove(box.size()-1);
 		System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
+		//計算する
 		operand = calc(d1, d2, s);
 		System.out.println("operandは" + operand);
 		str = String.valueOf(operand);
