@@ -100,80 +100,44 @@ class CalcFrame extends JFrame implements ActionListener{
 					//連続して数字が押された場合、それをひと続きの文字列（ひとつの数字）として格納する
 					str = str + button[i].getText();
 					System.out.println("strは" + str);
-					//数字が押されると、演算子等のボタンを押せるようになる
-					for(int j = 10; j <= 17; j++) {
-						button[j].setEnabled(true);
-					}
-					//数字の直後に「(」「)」は押せない
-					button[18].setEnabled(false);
-					button[19].setEnabled(false);
-					//以下の条件の際は「)」を押せる
-					//「(」が押されている
-					if(flag > 0) {
-						//strが空でない
-						if(str != "") {
-							//subBoxが空でない
-							if(subBox.size() > 0) {
-								button[19].setEnabled(true);
-							}
-						}
-					}
-					//以下の条件の際は「=」を押せない
-					//「)」で閉じられていない
-					if(flag != 0) {
-						button[11].setEnabled(false);
-					}
 				}
 				//小数点が押された場合
 				else if(i == 10) { 
 					//文字列に小数点を加える
 					str = str + button[i].getText();
 					System.out.println("strは" + str);
-					//小数点の直後は数字か「AC」しか押せない
-					for(int j = 10; j <= 19; j++) {
-						button[j].setEnabled(false);
-					}
-					button[16].setEnabled(true);
 				}
 				//「=」を押した場合。答えを表示する。すべての変数をリセットする
 				else if(i == 11) {
 					//strが空でない必要がある
 					if(str != "") {
-						//さらに、subBoxが空ではない必要がある
+						//boxに文字列を格納
+						box.add(str);
+						//計算処理
+						//引数「1」はsubBoxの上から1番目の演算子を使うことを指す
+						process(1);
+						//subBoxに演算子がまだ残っている場合、もう一度計算する
 						if(subBox.size() > 0) {
-							//boxに文字列を格納
-							box.add(str);
 							//計算処理
-							//引数「1」はsubBoxの上から1番目の演算子を使うことを指す
 							process(1);
-							//subBoxに演算子がまだ残っている場合、もう一度計算する
-							if(subBox.size() > 0) {
-								//計算処理
-								process(1);
-							}
-							//operandが整数ならば、double型からint型へキャストし、整数部のみで答えを表示する
-							//小数点以下を切り捨てたものが元の数値と同じであれば整数と判断できる
-							if(Math.floor(operand) == operand) {
-								//答えを表示
-								label.setText(label.getText() + (int)operand);
-								System.out.println("答えは" + (int)operand);
-							}else {
-								//答えを表示
-								label.setText(label.getText() + operand);
-								System.out.println("答えは" + operand);
-							}
-							//変数リセット
-							str = "";
-							operand = 0;
-							box.clear();
-							subBox.clear();
-							button[10].setEnabled(true);
-							//「=」の直後は「AC」しか押せない
-							for(int j = 0; j <= 19; j++) {
-								button[j].setEnabled(false);
-							}
-							button[16].setEnabled(true);
 						}
+						//operandが整数ならば、double型からint型へキャストし、整数部のみで答えを表示する
+						//小数点以下を切り捨てたものが元の数値と同じであれば整数と判断できる
+						if(Math.floor(operand) == operand) {
+							//答えを表示
+							label.setText(label.getText() + (int)operand);
+							System.out.println("答えは" + (int)operand);
+						}else {
+							//答えを表示
+							label.setText(label.getText() + operand);
+							System.out.println("答えは" + operand);
+						}
+						//変数リセット
+						str = "";
+						operand = 0;
+						box.clear();
+						subBox.clear();
+						button[10].setEnabled(true);
 					}
 				}
 				//演算子が押された場合。文字列をboxへ格納し、文字列を初期化。演算子はsubBoxへ格納
@@ -223,15 +187,6 @@ class CalcFrame extends JFrame implements ActionListener{
 								}
 							}
 						}
-						//演算子の直後は演算子と「=」「.」「%」「)」は押せない
-						for(int j = 0; j <= 19; j++) {
-							button[j].setEnabled(true);
-						}
-						for(int j = 10; j <= 15; j++) {
-							button[j].setEnabled(false);
-						}
-						button[17].setEnabled(false);
-						button[19].setEnabled(false);
 					}
 				}
 				// 「AC」が押された場合。変数をリセットする
@@ -244,47 +199,16 @@ class CalcFrame extends JFrame implements ActionListener{
 					box.clear();
 					subBox.clear();
 					label.setText("");
-					//いったんすべてのボタンを押せるようにする
-					for(int j = 0; j <= 19; j++) {
-						button[j].setEnabled(true);
-					}
-					//「AC」の直後は、数字、「AC」「(」しか押せないようにしておく
-					for(int j = 10; j <= 15; j++) {
-						button[j].setEnabled(false);
-					}
-					button[17].setEnabled(false);
-					button[19].setEnabled(false);
 				}
 				//「%」が押された場合。strを100分の1にする
 				else if(i == 17) {
 					if(str != "") {
 						operand = Double.parseDouble(str) * 0.01;
 						str = String.valueOf(operand);
-						//「%」の直後は、演算子、「=」「)」しか押せないようにする
-						//なお、「)」を押せるかどうかは数字を押した際にコントロール済み
-						for(int j = 10; j <= 15; j++) {
-							button[j].setEnabled(true);
-						}
-						//以下の条件の際は「=」を押せない
-						//「)」で閉じられていない
-						if(flag != 0) {
-							button[11].setEnabled(false);
-						}
 					}
 				//「(」が押された場合。 subBoxに「(」を追加
 				}else if(i == 18) {
 					subBox.add(button[i].getText());
-					//「(」の直後は、数字か「AC」、「(」しか押せないようにする
-					for(int j = 0; j <= 19; j++) {
-						button[j].setEnabled(false);
-					}
-					for(int j = 0; j <= 9; j++) {
-						button[j].setEnabled(true);
-					}
-					button[16].setEnabled(true);
-					button[18].setEnabled(true);
-					//「)」を押せるようにする
-					flag++;
 				//「)」が押された場合。
 				//「)」は、カッコ内の数式における「=」と同じとみなせるので、「=」の時とほぼ同じ処理をする
 				}else if(i == 19) {
@@ -311,52 +235,34 @@ class CalcFrame extends JFrame implements ActionListener{
 						subBox.remove(subBox.size()-1); 
 						//小数点ボタン有効化
 						button[10].setEnabled(true);
-						//「)」の直後は、演算子、「=」「%」「AC」「)」しか押せないようにする
-						for(int j = 0; j <= 19; j++) {
-							button[j].setEnabled(false);
-						}
-						for(int j = 10; j <= 15; j++) {
-							button[j].setEnabled(true);
-						}
-						button[16].setEnabled(true);
-						button[17].setEnabled(true);
-						button[19].setEnabled(true);
-						//「)」で閉じきったら「)」を押せないようにする
-						flag--;
-						if(flag == 0) {
-							button[19].setEnabled(false);
-						}
-						//以下の条件の際は「=」を押せない
-						//「)」で閉じられていない
-						if(flag != 0) {
-							button[11].setEnabled(false);
-						}
 					}
 				}
+				
+				///////////*以下、ボタンの有効化・無効化の処理*///////////
+				
 				//数字が押された場合
 				if(0 <= i && i <= 9) { 
-					//連続して数字が押された場合、それをひと続きの文字列（ひとつの数字）として格納する
-					str = str + button[i].getText();
-					System.out.println("strは" + str);
-					//数字が押されると、演算子等のボタンを押せるようになる
+					//いったんすべてのボタンを無効化
+					for(int j = 0; j <= 19; j++) {
+						button[j].setEnabled(false);
+					}
+					//「(」「)」以外のボタンを有効化
 					for(int j = 10; j <= 17; j++) {
 						button[j].setEnabled(true);
 					}
-					//数字の直後に「(」「)」は押せない
-					button[18].setEnabled(false);
-					button[19].setEnabled(false);
-					//以下の条件の際は「)」を押せる
+					//以下の条件の場合は「)」を有効化
 					//「(」が押されている
 					if(flag > 0) {
 						//strが空でない
 						if(str != "") {
-							//subBoxが空でない
-							if(subBox.size() > 0) {
+							//subBoxの一番上に演算子が格納されている
+							if(subBox.get(subBox.size()-1) == "+" || subBox.get(subBox.size()-1) == "-" || 
+									subBox.get(subBox.size()-1) == "×" || subBox.get(subBox.size()-1) == "÷" ) {
 								button[19].setEnabled(true);
 							}
 						}
 					}
-					//以下の条件の際は「=」を押せない
+					//以下の条件の場合は「=」を無効化
 					//「)」で閉じられていない
 					if(flag != 0) {
 						button[11].setEnabled(false);
@@ -364,158 +270,75 @@ class CalcFrame extends JFrame implements ActionListener{
 				}
 				//小数点が押された場合
 				else if(i == 10) { 
-					//文字列に小数点を加える
-					str = str + button[i].getText();
-					System.out.println("strは" + str);
-					//小数点の直後は数字か「AC」しか押せない
-					for(int j = 10; j <= 19; j++) {
+					//いったんすべてのボタンを無効化
+					for(int j = 0; j <= 19; j++) {
 						button[j].setEnabled(false);
+					}
+					//数字と「AC」を有効化
+					for(int j = 0; j <= 9; j++) {
+						button[j].setEnabled(true);
 					}
 					button[16].setEnabled(true);
 				}
-				//「=」を押した場合。答えを表示する。すべての変数をリセットする
+				//「=」を押した場合
 				else if(i == 11) {
-					//strが空でない必要がある
-					if(str != "") {
-						//さらに、subBoxが空ではない必要がある
-						if(subBox.size() > 0) {
-							//boxに文字列を格納
-							box.add(str);
-							//計算処理
-							//引数「1」はsubBoxの上から1番目の演算子を使うことを指す
-							process(1);
-							//subBoxに演算子がまだ残っている場合、もう一度計算する
-							if(subBox.size() > 0) {
-								//計算処理
-								process(1);
-							}
-							//operandが整数ならば、double型からint型へキャストし、整数部のみで答えを表示する
-							//小数点以下を切り捨てたものが元の数値と同じであれば整数と判断できる
-							if(Math.floor(operand) == operand) {
-								//答えを表示
-								label.setText(label.getText() + (int)operand);
-								System.out.println("答えは" + (int)operand);
-							}else {
-								//答えを表示
-								label.setText(label.getText() + operand);
-								System.out.println("答えは" + operand);
-							}
-							//変数リセット
-							str = "";
-							operand = 0;
-							box.clear();
-							subBox.clear();
-							button[10].setEnabled(true);
-							//「=」の直後は「AC」しか押せない
-							for(int j = 0; j <= 19; j++) {
-								button[j].setEnabled(false);
-							}
-							button[16].setEnabled(true);
-						}
+					//いったんすべてのボタンを無効化
+					for(int j = 0; j <= 19; j++) {
+						button[j].setEnabled(false);
 					}
+					//「AC」のみ有効化
+					button[16].setEnabled(true);
 				}
-				//演算子が押された場合。文字列をboxへ格納し、文字列を初期化。演算子はsubBoxへ格納
-				//今subBoxへ格納した演算子と、ひとつ前にsubBoxへ格納した演算子の組み合わせにより場合分けし、計算処理↓を行う
-				//ひとつ前の演算子をboxへ格納し、boxから要素を上から3つ取り出して計算し、boxへ戻す（processメソッド）
+				//演算子が押された場合
 				else if(12 <= i && i <= 15) {
-					if(str != "") {//strが空でない必要がある
-						//文字列をboxに格納
-						box.add(str);
-						//文字列初期化
-						str = ""; 
-						//小数点ボタン有効化
-						button[10].setEnabled(true);
-						//押された演算子をsubBoxへ格納
-						subBox.add(button[i].getText());
-						//subBoxに2つ以上の演算子が格納されている場合
-						if(subBox.size() > 1) { 
-							//+または-を押した場合かつひとつ前の演算子が×または÷の場合
-							if((i ==12 || i ==13) && (subBox.get(subBox.size()-2) == "×" || subBox.get(subBox.size()-2) == "÷")) {
-								//+,-は×,÷より優先順位が低いため、processメソッドで計算処理を行う
-								//引数「2」はsubBoxの上から2番目の演算子を使うことを指す
-								process(2);
-								//subBoxから×または÷の演算子が取り出されたことにより、subBoxに+または-の演算子が2つ並んだ場合
-								if(subBox.size() > 1) {
-									if((subBox.get(subBox.size()-2) == "+" || subBox.get(subBox.size()-2) == "-") &&
-										(subBox.get(subBox.size()-1) == "+" || subBox.get(subBox.size()-1) == "-")) {
-										//計算処理
-										process(2);
-									}
-								}
-							}
-							//+または-を押した場合かつひとつ前の演算子が+または-の場合
-							else if((i ==12 || i ==13) && (subBox.get(subBox.size()-2) == "+" || subBox.get(subBox.size()-2) == "-")) {
-								//計算処理
-								process(2);
-							}
-							//×または÷を押した場合かつ直前の演算子が×または÷の場合
-							else if((i ==14 || i ==15) && (subBox.get(subBox.size()-2) == "×" || subBox.get(subBox.size()-2) == "÷")) {
-								process(2);
-								//subBoxに+または-の演算子が2つ並んだ場合
-								if(subBox.size() > 1) {
-									if((subBox.get(subBox.size()-2) == "+" || subBox.get(subBox.size()-2) == "-") &&
-										(subBox.get(subBox.size()-1) == "+" || subBox.get(subBox.size()-1) == "-")) {
-										//計算処理
-										process(2);
-									}
-								}
-							}
-						}
-						//演算子の直後は演算子と「=」「.」「%」「)」は押せない
-						for(int j = 0; j <= 19; j++) {
-							button[j].setEnabled(true);
-						}
-						for(int j = 10; j <= 15; j++) {
-							button[j].setEnabled(false);
-						}
-						button[17].setEnabled(false);
-						button[19].setEnabled(false);
-					}
-				}
-				// 「AC」が押された場合。変数をリセットする
-				else if(i == 16) {
-					str = "";
-					s = ""; 
-					d1 = 0; 
-					d2 = 0; 
-					operand = 0;
-					box.clear();
-					subBox.clear();
-					label.setText("");
-					//いったんすべてのボタンを押せるようにする
+					//いったんすべてのボタンを有効化
 					for(int j = 0; j <= 19; j++) {
 						button[j].setEnabled(true);
 					}
-					//「AC」の直後は、数字、「AC」「(」しか押せないようにしておく
+					//演算子、「=」「.」「%」「)」を無効化
 					for(int j = 10; j <= 15; j++) {
 						button[j].setEnabled(false);
 					}
 					button[17].setEnabled(false);
 					button[19].setEnabled(false);
 				}
-				//「%」が押された場合。strを100分の1にする
-				else if(i == 17) {
-					if(str != "") {
-						operand = Double.parseDouble(str) * 0.01;
-						str = String.valueOf(operand);
-						//「%」の直後は、演算子、「=」「)」しか押せないようにする
-						//なお、「)」を押せるかどうかは数字を押した際にコントロール済み
-						for(int j = 10; j <= 15; j++) {
-							button[j].setEnabled(true);
-						}
-						//以下の条件の際は「=」を押せない
-						//「)」で閉じられていない
-						if(flag != 0) {
-							button[11].setEnabled(false);
-						}
-					}
-				//「(」が押された場合。 subBoxに「(」を追加
-				}else if(i == 18) {
-					subBox.add(button[i].getText());
-					//「(」の直後は、数字か「AC」、「(」しか押せないようにする
+				// 「AC」が押された場合
+				else if(i == 16) {
+					//いったんすべてのボタンを無効化
 					for(int j = 0; j <= 19; j++) {
 						button[j].setEnabled(false);
 					}
+					//数字、「AC」「(」のみ有効化
+					for(int j = 0; j <= 9; j++) {
+						button[j].setEnabled(true);
+					}
+					button[16].setEnabled(true);
+					button[18].setEnabled(true);
+				}
+				//「%」が押された場合
+				else if(i == 17) {
+					//いったんすべてのボタンを無効化
+					for(int j = 0; j <= 19; j++) {
+						button[j].setEnabled(false);
+					}
+					//演算子、「=」「)」のみ有効化
+					//なお、「)」を押せるかどうかは数字を押した際にコントロール済み
+					for(int j = 11; j <= 15; j++) {
+						button[j].setEnabled(true);
+					}
+					//以下の条件の際は「=」を無効化
+					//「)」で閉じられていない
+					if(flag != 0) {
+						button[11].setEnabled(false);
+					}
+				}
+				//「(」が押された場合
+				else if(i == 18) {
+					//いったんすべてのボタンを無効化
+					for(int j = 0; j <= 19; j++) {
+						button[j].setEnabled(false);
+					}
+					//数字、「AC」「(」のみ有効化
 					for(int j = 0; j <= 9; j++) {
 						button[j].setEnabled(true);
 					}
@@ -523,52 +346,28 @@ class CalcFrame extends JFrame implements ActionListener{
 					button[18].setEnabled(true);
 					//「)」を押せるようにする
 					flag++;
-				//「)」が押された場合。
-				//「)」は、カッコ内の数式における「=」と同じとみなせるので、「=」の時とほぼ同じ処理をする
+				//「)」が押された場合
 				}else if(i == 19) {
-					//strが空でない必要がある
-					if(str != "") {
-						box.add(str);
-						//計算処理
-						process(1);
-						//processメソッドの最後でboxに格納してしまった要素を取り除く
-						box.remove(box.size()-1);
-						//strにoperandを格納する
-						str = String.valueOf(operand);
-						//subBoxの先頭が「(」でなければ、カッコ内の計算が終わっていないので、もう一度計算する
-						if(subBox.get(subBox.size()-1) != "(") {
-							box.add(str); 
-							//計算処理
-							process(1);
-							//processメソッドの最後でboxに格納してしまった要素を取り除く
-							box.remove(box.size()-1);
-							//strにoperandを格納する
-							str = String.valueOf(operand);
-						} 
-						//subBoxの「(」を消去
-						subBox.remove(subBox.size()-1); 
-						//小数点ボタン有効化
-						button[10].setEnabled(true);
-						//「)」の直後は、演算子、「=」「%」「AC」「)」しか押せないようにする
-						for(int j = 0; j <= 19; j++) {
-							button[j].setEnabled(false);
-						}
-						for(int j = 10; j <= 15; j++) {
-							button[j].setEnabled(true);
-						}
-						button[16].setEnabled(true);
-						button[17].setEnabled(true);
-						button[19].setEnabled(true);
-						//「)」で閉じきったら「)」を押せないようにする
-						flag--;
-						if(flag == 0) {
-							button[19].setEnabled(false);
-						}
-						//以下の条件の際は「=」を押せない
-						//「)」で閉じられていない
-						if(flag != 0) {
-							button[11].setEnabled(false);
-						}
+					//いったんすべてのボタンを無効化
+					for(int j = 0; j <= 19; j++) {
+						button[j].setEnabled(false);
+					}
+					//演算子、「=」「%」「AC」「)」のみ有効化
+					for(int j = 11; j <= 15; j++) {
+						button[j].setEnabled(true);
+					}
+					button[16].setEnabled(true);
+					button[17].setEnabled(true);
+					button[19].setEnabled(true);
+					//「)」で閉じきったら「)」を押せないようにする
+					flag--;
+					if(flag == 0) {
+						button[19].setEnabled(false);
+					}
+					//以下の条件の際は「=」を押せない
+					//「)」で閉じられていない
+					if(flag != 0) {
+						button[11].setEnabled(false);
 					}
 				}
 			}	
