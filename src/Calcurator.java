@@ -20,6 +20,7 @@ class CalcFrame extends JFrame implements ActionListener{
 	double d1; //計算する際、数値を格納する
 	double d2; //計算する際、数値を格納する
 	double operand = 0; //文字列から数字に変換して格納する変数
+	int flag = 0; //「(」を押した後のみ「)」を押せるようにするためのフラグ
 	ArrayList<String> box = new ArrayList<>(); //数字等を文字列として先入れ後出しする箱
 	ArrayList<String> subBox = new ArrayList<>(); //補助用の箱。演算子を一時保管する。先入れ後出し
 	//なお、便宜上、箱の後ろからn番目に格納された要素を、箱の上からn番目にあると表現している
@@ -74,6 +75,12 @@ class CalcFrame extends JFrame implements ActionListener{
 			button[i].setFont(new Font(Font.DIALOG_INPUT, Font.PLAIN, 20));
 			button[i].addActionListener(this);
 		}
+		//初めは、数字、「AC」「(」しか押せないようにしておく
+		for(int i = 10; i <= 15; i++) {
+			button[i].setEnabled(false);
+		}
+		button[17].setEnabled(false);
+		button[19].setEnabled(false);
 		//フレームを表示する
 		setSize(350,400);
 		setVisible(true);
@@ -88,64 +95,85 @@ class CalcFrame extends JFrame implements ActionListener{
 					label.setText(label.getText() + button[i].getText());
 					System.out.println("押されたキーは" + button[i].getText());
 				}
-				//数字または小数点が押され続ける限り、それをひと続きの文字列（ひとつの数字）として格納する
-				if(0 <= i && i <= 10) { 
-					//文字列が小数点のみなら先頭に0を付ける
-					if(str == ".") {
-						str = 0 + str;
-					}
+				//数字が押された場合
+				if(0 <= i && i <= 9) { 
+					//連続して数字が押された場合、それをひと続きの文字列（ひとつの数字）として格納する
 					str = str + button[i].getText();
-					//小数点は一回しか押せない
-					if(i == 10) { 
-						button[10].setEnabled(false);
-					}
 					System.out.println("strは" + str);
+					//数字が押されると、演算子等のボタンを押せるようになる
+					for(int j = 10; j <= 17; j++) {
+						button[j].setEnabled(true);
+					}
+					//数字の直後に「(」「)」は押せない
+					button[18].setEnabled(false);
+					button[19].setEnabled(false);
+					//以下の条件の際は「)」を押せる
+					//「(」が押されている
+					if(flag > 0) {
+						//strが空でない
+						if(str != "") {
+							//subBoxが空でない
+							if(subBox.size() > 0) {
+								button[19].setEnabled(true);
+							}
+						}
+					}
+					//以下の条件の際は「=」を押せない
+					//「)」で閉じられていない
+					if(flag != 0) {
+						button[11].setEnabled(false);
+					}
+				}
+				//小数点が押された場合
+				else if(i == 10) { 
+					//文字列に小数点を加える
+					str = str + button[i].getText();
+					System.out.println("strは" + str);
+					//小数点の直後は数字か「AC」しか押せない
+					for(int j = 10; j <= 19; j++) {
+						button[j].setEnabled(false);
+					}
+					button[16].setEnabled(true);
 				}
 				//「=」を押した場合。答えを表示する。すべての変数をリセットする
 				else if(i == 11) {
-					//計算する
-					if(str != "") {//strが空でない必要がある
-						//boxに文字列を格納
-						box.add(str);
-						//subBoxから演算子を取り出し、boxに追加
-						box.add(subBox.get(subBox.size()-1));
-						//取り出したものをboxから削除する
-						subBox.remove(subBox.size()-1);
-						//boxの上から2番目と3番目の要素をダブル型の数値として取り出す
-						d1 = Double.parseDouble(box.get(box.size()-3));
-						d2 = Double.parseDouble(box.get(box.size()-2));
-						//boxの上から1番目の要素(演算子)を取り出す
-						s = box.get(box.size()-1);
-						//取り出したものをboxから削除する
-						box.remove(box.size()-1);
-						box.remove(box.size()-1);
-						box.remove(box.size()-1);
-						System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
-						//取り出した要素を使用して計算する
-						operand = calc(d1, d2, s);
-						//subBoxに演算子がまだ残っている場合、もう一度計算する
+					//strが空でない必要がある
+					if(str != "") {
+						//さらに、subBoxが空ではない必要がある
 						if(subBox.size() > 0) {
-							System.out.println("operandは" + operand);
-							//直前に計算した数値をboxに格納する
-							str = String.valueOf(operand);
+							//boxに文字列を格納
 							box.add(str);
-							//上記と同様に要素を取り出して計算する
-							box.add(subBox.get(subBox.size()-1));
-							d1 = Double.parseDouble(box.get(box.size()-3));
-							d2 = Double.parseDouble(box.get(box.size()-2));
-							s = box.get(box.size()-1);
-							System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
-							operand = calc(d1, d2, s);
+							//計算処理
+							//引数「1」はsubBoxの上から1番目の演算子を使うことを指す
+							process(1);
+							//subBoxに演算子がまだ残っている場合、もう一度計算する
+							if(subBox.size() > 0) {
+								//計算処理
+								process(1);
+							}
+							//operandが整数ならば、double型からint型へキャストし、整数部のみで答えを表示する
+							//小数点以下を切り捨てたものが元の数値と同じであれば整数と判断できる
+							if(Math.floor(operand) == operand) {
+								//答えを表示
+								label.setText(label.getText() + (int)operand);
+								System.out.println("答えは" + (int)operand);
+							}else {
+								//答えを表示
+								label.setText(label.getText() + operand);
+								System.out.println("答えは" + operand);
+							}
+							//変数リセット
+							str = "";
+							operand = 0;
+							box.clear();
+							subBox.clear();
+							button[10].setEnabled(true);
+							//「=」の直後は「AC」しか押せない
+							for(int j = 0; j <= 19; j++) {
+								button[j].setEnabled(false);
+							}
+							button[16].setEnabled(true);
 						}
-						//答えを表示
-						label.setText(label.getText() + operand);
-						System.out.println("答えは" + operand);
-						//変数リセット
-						str = "";
-						operand = 0;
-						box.clear();
-						subBox.clear();
-						button[10].setEnabled(true);
 					}
 				}
 				//演算子が押された場合。文字列をboxへ格納し、文字列を初期化。演算子はsubBoxへ格納
@@ -195,6 +223,15 @@ class CalcFrame extends JFrame implements ActionListener{
 								}
 							}
 						}
+						//演算子の直後は演算子と「=」「.」「%」「)」は押せない
+						for(int j = 0; j <= 19; j++) {
+							button[j].setEnabled(true);
+						}
+						for(int j = 10; j <= 15; j++) {
+							button[j].setEnabled(false);
+						}
+						button[17].setEnabled(false);
+						button[19].setEnabled(false);
 					}
 				}
 				// 「AC」が押された場合。変数をリセットする
@@ -206,59 +243,332 @@ class CalcFrame extends JFrame implements ActionListener{
 					operand = 0;
 					box.clear();
 					subBox.clear();
-					button[10].setEnabled(true);
 					label.setText("");
-				
+					//いったんすべてのボタンを押せるようにする
+					for(int j = 0; j <= 19; j++) {
+						button[j].setEnabled(true);
+					}
+					//「AC」の直後は、数字、「AC」「(」しか押せないようにしておく
+					for(int j = 10; j <= 15; j++) {
+						button[j].setEnabled(false);
+					}
+					button[17].setEnabled(false);
+					button[19].setEnabled(false);
 				}
 				//「%」が押された場合。strを100分の1にする
 				else if(i == 17) {
 					if(str != "") {
 						operand = Double.parseDouble(str) * 0.01;
 						str = String.valueOf(operand);
+						//「%」の直後は、演算子、「=」「)」しか押せないようにする
+						//なお、「)」を押せるかどうかは数字を押した際にコントロール済み
+						for(int j = 10; j <= 15; j++) {
+							button[j].setEnabled(true);
+						}
+						//以下の条件の際は「=」を押せない
+						//「)」で閉じられていない
+						if(flag != 0) {
+							button[11].setEnabled(false);
+						}
 					}
 				//「(」が押された場合。 subBoxに「(」を追加
 				}else if(i == 18) {
 					subBox.add(button[i].getText());
+					//「(」の直後は、数字か「AC」、「(」しか押せないようにする
+					for(int j = 0; j <= 19; j++) {
+						button[j].setEnabled(false);
+					}
+					for(int j = 0; j <= 9; j++) {
+						button[j].setEnabled(true);
+					}
+					button[16].setEnabled(true);
+					button[18].setEnabled(true);
+					//「)」を押せるようにする
+					flag++;
 				//「)」が押された場合。
 				//「)」は、カッコ内の数式における「=」と同じとみなせるので、「=」の時とほぼ同じ処理をする
 				}else if(i == 19) {
 					//strが空でない必要がある
 					if(str != "") {
 						box.add(str);
-						box.add(subBox.get(subBox.size()-1));
-						subBox.remove(subBox.size()-1);
-						d1 = Double.parseDouble(box.get(box.size()-3));
-						d2 = Double.parseDouble(box.get(box.size()-2));
-						s = box.get(box.size()-1);
+						//計算処理
+						process(1);
+						//processメソッドの最後でboxに格納してしまった要素を取り除く
 						box.remove(box.size()-1);
-						box.remove(box.size()-1);
-						box.remove(box.size()-1);
-						System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
-						operand = calc(d1, d2, s);
-						System.out.println("operandは" + operand);
-						//計算したカッコ内の数値をstrに格納
+						//strにoperandを格納する
 						str = String.valueOf(operand);
-						//subBoxの先頭が「(」出なければ、カッコ内の計算が終わっていないので、もう一度計算する
+						//subBoxの先頭が「(」でなければ、カッコ内の計算が終わっていないので、もう一度計算する
 						if(subBox.get(subBox.size()-1) != "(") {
 							box.add(str); 
-							box.add(subBox.get(subBox.size()-1));
-							subBox.remove(subBox.size()-1);
-							d1 = Double.parseDouble(box.get(box.size()-3));
-							d2 = Double.parseDouble(box.get(box.size()-2));
-							s = box.get(box.size()-1);
+							//計算処理
+							process(1);
+							//processメソッドの最後でboxに格納してしまった要素を取り除く
 							box.remove(box.size()-1);
-							box.remove(box.size()-1);
-							box.remove(box.size()-1);
-							System.out.println("d1は" + d1 + "、d2は" + d2 + "、sは" + s);
-							operand = calc(d1, d2, s);
-							System.out.println("operandは" + operand);
-							//計算したカッコ内の数値をstrに格納
+							//strにoperandを格納する
 							str = String.valueOf(operand);
 						} 
 						//subBoxの「(」を消去
 						subBox.remove(subBox.size()-1); 
 						//小数点ボタン有効化
 						button[10].setEnabled(true);
+						//「)」の直後は、演算子、「=」「%」「AC」「)」しか押せないようにする
+						for(int j = 0; j <= 19; j++) {
+							button[j].setEnabled(false);
+						}
+						for(int j = 10; j <= 15; j++) {
+							button[j].setEnabled(true);
+						}
+						button[16].setEnabled(true);
+						button[17].setEnabled(true);
+						button[19].setEnabled(true);
+						//「)」で閉じきったら「)」を押せないようにする
+						flag--;
+						if(flag == 0) {
+							button[19].setEnabled(false);
+						}
+						//以下の条件の際は「=」を押せない
+						//「)」で閉じられていない
+						if(flag != 0) {
+							button[11].setEnabled(false);
+						}
+					}
+				}
+				//数字が押された場合
+				if(0 <= i && i <= 9) { 
+					//連続して数字が押された場合、それをひと続きの文字列（ひとつの数字）として格納する
+					str = str + button[i].getText();
+					System.out.println("strは" + str);
+					//数字が押されると、演算子等のボタンを押せるようになる
+					for(int j = 10; j <= 17; j++) {
+						button[j].setEnabled(true);
+					}
+					//数字の直後に「(」「)」は押せない
+					button[18].setEnabled(false);
+					button[19].setEnabled(false);
+					//以下の条件の際は「)」を押せる
+					//「(」が押されている
+					if(flag > 0) {
+						//strが空でない
+						if(str != "") {
+							//subBoxが空でない
+							if(subBox.size() > 0) {
+								button[19].setEnabled(true);
+							}
+						}
+					}
+					//以下の条件の際は「=」を押せない
+					//「)」で閉じられていない
+					if(flag != 0) {
+						button[11].setEnabled(false);
+					}
+				}
+				//小数点が押された場合
+				else if(i == 10) { 
+					//文字列に小数点を加える
+					str = str + button[i].getText();
+					System.out.println("strは" + str);
+					//小数点の直後は数字か「AC」しか押せない
+					for(int j = 10; j <= 19; j++) {
+						button[j].setEnabled(false);
+					}
+					button[16].setEnabled(true);
+				}
+				//「=」を押した場合。答えを表示する。すべての変数をリセットする
+				else if(i == 11) {
+					//strが空でない必要がある
+					if(str != "") {
+						//さらに、subBoxが空ではない必要がある
+						if(subBox.size() > 0) {
+							//boxに文字列を格納
+							box.add(str);
+							//計算処理
+							//引数「1」はsubBoxの上から1番目の演算子を使うことを指す
+							process(1);
+							//subBoxに演算子がまだ残っている場合、もう一度計算する
+							if(subBox.size() > 0) {
+								//計算処理
+								process(1);
+							}
+							//operandが整数ならば、double型からint型へキャストし、整数部のみで答えを表示する
+							//小数点以下を切り捨てたものが元の数値と同じであれば整数と判断できる
+							if(Math.floor(operand) == operand) {
+								//答えを表示
+								label.setText(label.getText() + (int)operand);
+								System.out.println("答えは" + (int)operand);
+							}else {
+								//答えを表示
+								label.setText(label.getText() + operand);
+								System.out.println("答えは" + operand);
+							}
+							//変数リセット
+							str = "";
+							operand = 0;
+							box.clear();
+							subBox.clear();
+							button[10].setEnabled(true);
+							//「=」の直後は「AC」しか押せない
+							for(int j = 0; j <= 19; j++) {
+								button[j].setEnabled(false);
+							}
+							button[16].setEnabled(true);
+						}
+					}
+				}
+				//演算子が押された場合。文字列をboxへ格納し、文字列を初期化。演算子はsubBoxへ格納
+				//今subBoxへ格納した演算子と、ひとつ前にsubBoxへ格納した演算子の組み合わせにより場合分けし、計算処理↓を行う
+				//ひとつ前の演算子をboxへ格納し、boxから要素を上から3つ取り出して計算し、boxへ戻す（processメソッド）
+				else if(12 <= i && i <= 15) {
+					if(str != "") {//strが空でない必要がある
+						//文字列をboxに格納
+						box.add(str);
+						//文字列初期化
+						str = ""; 
+						//小数点ボタン有効化
+						button[10].setEnabled(true);
+						//押された演算子をsubBoxへ格納
+						subBox.add(button[i].getText());
+						//subBoxに2つ以上の演算子が格納されている場合
+						if(subBox.size() > 1) { 
+							//+または-を押した場合かつひとつ前の演算子が×または÷の場合
+							if((i ==12 || i ==13) && (subBox.get(subBox.size()-2) == "×" || subBox.get(subBox.size()-2) == "÷")) {
+								//+,-は×,÷より優先順位が低いため、processメソッドで計算処理を行う
+								//引数「2」はsubBoxの上から2番目の演算子を使うことを指す
+								process(2);
+								//subBoxから×または÷の演算子が取り出されたことにより、subBoxに+または-の演算子が2つ並んだ場合
+								if(subBox.size() > 1) {
+									if((subBox.get(subBox.size()-2) == "+" || subBox.get(subBox.size()-2) == "-") &&
+										(subBox.get(subBox.size()-1) == "+" || subBox.get(subBox.size()-1) == "-")) {
+										//計算処理
+										process(2);
+									}
+								}
+							}
+							//+または-を押した場合かつひとつ前の演算子が+または-の場合
+							else if((i ==12 || i ==13) && (subBox.get(subBox.size()-2) == "+" || subBox.get(subBox.size()-2) == "-")) {
+								//計算処理
+								process(2);
+							}
+							//×または÷を押した場合かつ直前の演算子が×または÷の場合
+							else if((i ==14 || i ==15) && (subBox.get(subBox.size()-2) == "×" || subBox.get(subBox.size()-2) == "÷")) {
+								process(2);
+								//subBoxに+または-の演算子が2つ並んだ場合
+								if(subBox.size() > 1) {
+									if((subBox.get(subBox.size()-2) == "+" || subBox.get(subBox.size()-2) == "-") &&
+										(subBox.get(subBox.size()-1) == "+" || subBox.get(subBox.size()-1) == "-")) {
+										//計算処理
+										process(2);
+									}
+								}
+							}
+						}
+						//演算子の直後は演算子と「=」「.」「%」「)」は押せない
+						for(int j = 0; j <= 19; j++) {
+							button[j].setEnabled(true);
+						}
+						for(int j = 10; j <= 15; j++) {
+							button[j].setEnabled(false);
+						}
+						button[17].setEnabled(false);
+						button[19].setEnabled(false);
+					}
+				}
+				// 「AC」が押された場合。変数をリセットする
+				else if(i == 16) {
+					str = "";
+					s = ""; 
+					d1 = 0; 
+					d2 = 0; 
+					operand = 0;
+					box.clear();
+					subBox.clear();
+					label.setText("");
+					//いったんすべてのボタンを押せるようにする
+					for(int j = 0; j <= 19; j++) {
+						button[j].setEnabled(true);
+					}
+					//「AC」の直後は、数字、「AC」「(」しか押せないようにしておく
+					for(int j = 10; j <= 15; j++) {
+						button[j].setEnabled(false);
+					}
+					button[17].setEnabled(false);
+					button[19].setEnabled(false);
+				}
+				//「%」が押された場合。strを100分の1にする
+				else if(i == 17) {
+					if(str != "") {
+						operand = Double.parseDouble(str) * 0.01;
+						str = String.valueOf(operand);
+						//「%」の直後は、演算子、「=」「)」しか押せないようにする
+						//なお、「)」を押せるかどうかは数字を押した際にコントロール済み
+						for(int j = 10; j <= 15; j++) {
+							button[j].setEnabled(true);
+						}
+						//以下の条件の際は「=」を押せない
+						//「)」で閉じられていない
+						if(flag != 0) {
+							button[11].setEnabled(false);
+						}
+					}
+				//「(」が押された場合。 subBoxに「(」を追加
+				}else if(i == 18) {
+					subBox.add(button[i].getText());
+					//「(」の直後は、数字か「AC」、「(」しか押せないようにする
+					for(int j = 0; j <= 19; j++) {
+						button[j].setEnabled(false);
+					}
+					for(int j = 0; j <= 9; j++) {
+						button[j].setEnabled(true);
+					}
+					button[16].setEnabled(true);
+					button[18].setEnabled(true);
+					//「)」を押せるようにする
+					flag++;
+				//「)」が押された場合。
+				//「)」は、カッコ内の数式における「=」と同じとみなせるので、「=」の時とほぼ同じ処理をする
+				}else if(i == 19) {
+					//strが空でない必要がある
+					if(str != "") {
+						box.add(str);
+						//計算処理
+						process(1);
+						//processメソッドの最後でboxに格納してしまった要素を取り除く
+						box.remove(box.size()-1);
+						//strにoperandを格納する
+						str = String.valueOf(operand);
+						//subBoxの先頭が「(」でなければ、カッコ内の計算が終わっていないので、もう一度計算する
+						if(subBox.get(subBox.size()-1) != "(") {
+							box.add(str); 
+							//計算処理
+							process(1);
+							//processメソッドの最後でboxに格納してしまった要素を取り除く
+							box.remove(box.size()-1);
+							//strにoperandを格納する
+							str = String.valueOf(operand);
+						} 
+						//subBoxの「(」を消去
+						subBox.remove(subBox.size()-1); 
+						//小数点ボタン有効化
+						button[10].setEnabled(true);
+						//「)」の直後は、演算子、「=」「%」「AC」「)」しか押せないようにする
+						for(int j = 0; j <= 19; j++) {
+							button[j].setEnabled(false);
+						}
+						for(int j = 10; j <= 15; j++) {
+							button[j].setEnabled(true);
+						}
+						button[16].setEnabled(true);
+						button[17].setEnabled(true);
+						button[19].setEnabled(true);
+						//「)」で閉じきったら「)」を押せないようにする
+						flag--;
+						if(flag == 0) {
+							button[19].setEnabled(false);
+						}
+						//以下の条件の際は「=」を押せない
+						//「)」で閉じられていない
+						if(flag != 0) {
+							button[11].setEnabled(false);
+						}
 					}
 				}
 			}	
@@ -281,11 +591,13 @@ class CalcFrame extends JFrame implements ActionListener{
 	public void process(int x) {
 		//subBoxの上から2番目の演算子を取り出す
 		box.add(subBox.get(subBox.size()-x));
+		//取り出した要素を削除する
 		subBox.remove(subBox.size()-x);
 		//boxの上から3つの要素を取り出す
 		d1 = Double.parseDouble(box.get(box.size()-3));
 		d2 = Double.parseDouble(box.get(box.size()-2));
 		s = box.get(box.size()-1);
+		//取り出した要素を削除する
 		box.remove(box.size()-1);
 		box.remove(box.size()-1);
 		box.remove(box.size()-1);
@@ -298,8 +610,10 @@ class CalcFrame extends JFrame implements ActionListener{
 		str = "";
 	}
 	
+	//実際に計算するメソッド
 	public double calc(double d1, double d2, String s) {
 		double d = 0;
+		//演算子sによって場合分けする
 		switch(s) {
 		case "+":
 			System.out.println("case+が実行されました");
